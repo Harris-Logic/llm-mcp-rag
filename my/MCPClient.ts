@@ -24,6 +24,7 @@ export default class MCPClient{
     public gettools(){
         return this.tools
     }   
+    
     public async callTool(name: string, params: Record<string, any>){
         return await this.mcp.callTool({name, arguments: params})
     }
