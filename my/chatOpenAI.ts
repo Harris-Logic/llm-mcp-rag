@@ -2,20 +2,29 @@ import OpenAI from "openai";
 import { Tool } from "@modelcontextprotocol/sdk/types.js";//"openai/resources/responses/responses.mjs";
 import 'dotenv/config';
 import { logTitle } from "./utils";
+/** 工具调用接口 - 表示AI模型调用的工具 */
 export interface ToolCall{
-    id:string,
-    function : {
-        name: string,
-        arguments: string,
+    id:string, // 工具调用的唯一标识符
+    function : { // 函数调用信息
+        name: string, // 函数名称
+        arguments: string, // 函数参数（JSON字符串格式）
     }
 }
 
+/** OpenAI聊天客户端类 - 封装与OpenAI API的交互，支持工具调用和流式响应 */
 export default class ChatOpenAI{
-    private llm: OpenAI
-    private model: string
-    private message: OpenAI.Chat.ChatCompletionMessageParam[] = []
-    private tools: Tool[] = []
+    private llm: OpenAI // OpenAI客户端实例
+    private model: string // 使用的模型名称
+    private message: OpenAI.Chat.ChatCompletionMessageParam[] = [] // 消息历史记录
+    private tools: Tool[] = [] // 可用的工具列表
 
+    /**
+     * 构造函数 - 初始化ChatOpenAI实例
+     * @param model 模型名称 (如 "gpt-4", "gpt-3.5-turbo")
+     * @param systemPrompt 系统提示词，用于设置AI的行为和角色
+     * @param tools 可用工具列表，用于函数调用
+     * @param context 初始上下文信息
+     */
     constructor(model: string, systemPrompt: string = '', tools: Tool[] = [], context: string = ''){
         this.llm = new OpenAI({
             apiKey:process.env.OPENAI_API_KEY,
@@ -27,6 +36,11 @@ export default class ChatOpenAI{
         if(context) this.message.push({ role:'user', content:context })
     }
 
+    /**
+     * 发送聊天消息并获取AI响应
+     * @param prompt 用户输入的消息内容（可选，如果不提供则继续之前的对话）
+     * @returns 包含响应内容和工具调用信息的对象
+     */
     async chat(prompt?: string){
         logTitle('CHAT')
         if(prompt) this.message.push({ role:'user', content: prompt })
@@ -68,6 +82,11 @@ export default class ChatOpenAI{
         return { content, toolCalls}
     }
 
+    /**
+     * 添加工具调用结果到消息历史
+     * @param toolCallId 工具调用的ID
+     * @param toolOutput 工具执行的结果
+     */
     public appendToolResult(toolCallId: string, toolOutput: string){
         this.message.push({ role: 'tool', content: toolOutput, tool_call_id: toolCallId})
     }
@@ -93,6 +112,10 @@ export default class ChatOpenAI{
     //     return toolsDef;
     // }
 
+    /**
+     * 获取工具定义 - 将工具列表转换为OpenAI API所需的格式
+     * @returns 格式化后的工具定义数组
+     */
     private getToolsDefinition(){
         return this.tools.map(tool => ({
             type: 'function' as const,

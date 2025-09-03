@@ -1,34 +1,39 @@
-from Client from @modelcontextprotocol/sdk/client/index.js
-from StdioClientTransport from @modelcontextprotocol/sdk/client/stdio.js
-from SetLevelRequest, Tool from @modelcontextprotocol/sdk/types.js
+from ast import arg
+import asyncio
+import json
+# from model_context_protocol.client import Client\
+from mcp import client
+# from mcp.client.stdio import 
+from mcp import ClientSession, StdioServerParameters, Tool
+from mcp.client.stdio import stdio_client
+# from mcp.types import Tool
+
+from typing import Optional
+from contextlib import AsyncExitStack
+# from anthropic import Anthropic
+from dotenv import load_dotenv
+
+load_dotenv() # load environment variables from .env
 
 class MCPClient:
-    private mcp: Client
-    private transport: StdioClientTransport | None = None
-    private tools: list[Tool] = []
-    private command: str
-    private args: list[str]
-
-    constructor(name: str, command: str, args: list[str], version: str = '1.0.0'):
-        self.mcp = Client({name, version: version|'1.0.0'})
+    def __init__(
+        self, 
+        name: str,
+        command: str,
+        args: list[str],
+        version: str = "1.0.0"
+    ):
+        # self.mcp = client(name=name, version=version)
+        self.session: 
+        self.transport = None
+        self.tools: list[Tool] = []
         self.command = command
         self.args = args
 
-    # def __init__(self, name: str, command: str, args: list[str], version: str = '1.0.0'):
-    #     self.mcp = Client({name, version})
-    #     self.command = command
-    #     self.args = args
+    async def close(self):
+        """清理资源，关闭与服务器的连接"""
+        await self.mcp.
 
-    def async close(self):
-        await self.mcp.close()
-
-    def async init(self):
-        await self.connectToServer()
-
-    def gettools(self):
-        return self.tools
-
-    def async connectToServer(self):
-        self.transport = StdioClientTransport({command: self.command, args: self.args})
-        await self.mcp.connect(self.transport)
-        self.tools = await self.mcp.listTools()
+    async def init(self):
+        """公开的初始化方法，启动服务器连接"""
+        await self.__connect_to_server()
